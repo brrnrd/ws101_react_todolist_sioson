@@ -1,39 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import './App.css';
 
 function App() {
-  const [task, setTask] = useState('');
-  const [priority, setPriority] = useState('low');
-  const [deadline, setDeadline] = useState('');
-  const [tasks, setTasks] = useState([]);
+  const [task, setTask] = useState("");
+  const [taskList, setTaskList] = useState([]);
+  const [filter, setFilter] = useState("all");
 
   const handleAddTask = () => {
-    if (task.trim()) {
-      setTasks([...tasks, { task, priority, deadline, completed: false }]);
-      setTask('');
-      setDeadline('');
-      setPriority('low');
+    if (task) {
+      setTaskList([...taskList, { id: Date.now(), name: task, completed: false }]);
+      setTask("");
     }
   };
 
-  const handleToggleComplete = (index) => {
-    const updatedTasks = tasks.map((t, i) =>
-      i === index ? { ...t, completed: !t.completed } : t
+  const handleCompleteTask = (id) => {
+    const updatedTasks = taskList.map(t => 
+      t.id === id ? { ...t, completed: !t.completed } : t
     );
-    setTasks(updatedTasks);
+    setTaskList(updatedTasks);
   };
 
-  const handleDeleteTask = (index) => {
-    setTasks(tasks.filter((_, i) => i !== index));
+  const handleDeleteTask = (id) => {
+    const updatedTasks = taskList.filter(t => t.id !== id);
+    setTaskList(updatedTasks);
   };
+
+  const filteredTasks = taskList.filter(task => {
+    if (filter === "completed") return task.completed;
+    if (filter === "pending") return !task.completed;
+    return true; 
+  });
 
   return (
     <div className="app">
-      <video autoPlay loop muted id="bg-video">
-        <source src="/bg-video.mp4" type="video/mp4" />
-        Ayaw gumana ng vid sa browser mo, gomen.
-      </video>
-
       <h1>To-Do List</h1>
       <div className="input-section">
         <input
@@ -42,37 +41,30 @@ function App() {
           onChange={(e) => setTask(e.target.value)}
           placeholder="Add a new task"
         />
-        <div className="input-subsection">
-          <select value={priority} onChange={(e) => setPriority(e.target.value)}>
-            <option value="Low">Low Priority</option>
-            <option value="Medium">Medium Priority</option>
-            <option value="High">High Priority</option>
-          </select>
-          <input
-            type="date"
-            value={deadline}
-            onChange={(e) => setDeadline(e.target.value)}
-          />
-          <button onClick={handleAddTask}>Add Task</button>
-        </div>
+        <button onClick={handleAddTask}>Add Task</button>
       </div>
+
+      <div className="filter-buttons">
+        <button onClick={() => setFilter("all")}>All</button>
+        <button onClick={() => setFilter("completed")}>Completed</button>
+        <button onClick={() => setFilter("pending")}>Pending</button>
+      </div>
+
       <ul className="task-list">
-        {tasks.map((task, index) => (
-          <li key={index} className={task.completed ? 'completed' : ''}>
+        {filteredTasks.map((task) => (
+          <li key={task.id} className={task.completed ? "completed" : ""}>
             <input
               type="checkbox"
               checked={task.completed}
-              onChange={() => handleToggleComplete(index)}
+              onChange={() => handleCompleteTask(task.id)}
             />
-            <span>{task.task}</span>
-            <span className={`priority ${task.priority}`}>{task.priority}</span>
-            <span className="deadline">
-              {task.deadline ? `Due: ${task.deadline}` : 'No deadline'}
-            </span>
-            <button onClick={() => handleDeleteTask(index)}>Delete</button>
+            <span>{task.name}</span>
+            <div className="task-buttons">
+              <button onClick={() => handleDeleteTask(task.id)}>Delete</button>
+            </div>
           </li>
         ))}
-      </ul> 
+      </ul>
     </div>
   );
 }
